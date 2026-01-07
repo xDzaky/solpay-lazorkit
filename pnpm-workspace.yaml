@@ -1,0 +1,9 @@
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - bigint-buffer
+  - bufferutil
+  - esbuild
+  - prisma
+  - unrs-resolver
+  - utf-8-validate
