@@ -10,7 +10,22 @@
 
 ## 📺 Demo Video
 
-> 🎥 [Watch the 3-minute demo on YouTube](https://youtube.com/watch?v=DEMO_VIDEO_ID)
+> 🎥 [Watch the demo video](https://youtube.com/watch?v=YOUR_VIDEO_ID)
+
+---
+
+## 🧪 Testing Mode (Mock Mode)
+
+This deployment includes **Mock Mode** for easy testing:
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **Passkey Auth** | Real Lazorkit SDK integration |
+| 💰 **Balance** | $1,000 USDC (simulated) |
+| 📊 **Transactions** | Persisted in localStorage |
+| 🎉 **Full Flow** | Subscribe, view history, cancel |
+
+> **For Production:** Set `NEXT_PUBLIC_MOCK_MODE=false` to use real USDC on Devnet
 
 ---
 
@@ -85,9 +100,10 @@ With Lazorkit + SolPay:
 | **Language** | TypeScript 5 | Type safety, better IDE support |
 | **Styling** | Tailwind CSS | Rapid UI development |
 | **State** | Zustand + React Query | Simple client state + server cache |
-| **Database** | Prisma + SQLite | Type-safe ORM, easy local dev |
+| **Database** | Prisma + PostgreSQL | Type-safe ORM, production-ready |
 | **Blockchain** | @lazorkit/wallet | Passkey wallets, gasless TX |
 | **Tokens** | @solana/spl-token | USDC transfers |
+| **Animations** | canvas-confetti | Celebration effects 🎉 |
 
 ---
 
@@ -102,7 +118,7 @@ With Lazorkit + SolPay:
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/solpay-lazorkit.git
+git clone https://github.com/xDzaky/solpay-lazorkit.git
 cd solpay-lazorkit
 pnpm install
 ```
@@ -117,10 +133,11 @@ The default values work for Devnet:
 
 ```env
 # .env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://..." # Or SQLite for local: "file:./dev.db"
 NEXT_PUBLIC_RPC_URL="https://api.devnet.solana.com"
-NEXT_PUBLIC_PORTAL_URL="https://portal.lazor.sh"
-NEXT_PUBLIC_PAYMASTER_URL="https://kora.devnet.lazorkit.com"
+NEXT_PUBLIC_LAZORKIT_PORTAL_URL="https://portal.lazor.sh"
+NEXT_PUBLIC_LAZORKIT_PAYMASTER_URL="https://kora.devnet.lazorkit.com"
+NEXT_PUBLIC_MOCK_MODE="true" # Set to "false" for real USDC
 ```
 
 ### 3. Initialize Database
@@ -336,28 +353,65 @@ pnpm prisma migrate dev --name init
 
 ---
 
-## 📚 Learn More
+## 📚 Tutorials
 
-- [Tutorial 1: Passkey Wallet Setup](./docs/tutorials/01-passkey-wallet-setup.md)
-- [Tutorial 2: Gasless Transactions](./docs/tutorials/02-gasless-transactions.md)
-- [Technical Specification](./TECH_SPEC.md)
-- [Lazorkit Documentation](https://docs.lazorkit.com)
+This project includes **4 comprehensive tutorials**:
+
+| # | Tutorial | Description |
+|---|----------|-------------|
+| 1 | [Passkey Wallet Setup](./docs/tutorials/01-passkey-wallet-setup.md) | Create & configure passkey authentication |
+| 2 | [Gasless Transactions](./docs/tutorials/02-gasless-transactions.md) | Send USDC without SOL gas fees |
+| 3 | [Subscription System](./docs/tutorials/03-subscription-system.md) | Build recurring payment flows |
+| 4 | [Session Persistence](./docs/tutorials/04-session-persistence.md) | Keep users logged in across sessions |
 
 ---
 
-## 🏆 Bounty Submission
+## 📖 Additional Resources
 
-This project was built for the **Lazorkit Bounty** to demonstrate:
+- [Technical Specification](./TECH_SPEC.md) - 1400+ lines of detailed documentation
+- [Lazorkit Documentation](https://docs.lazorkit.com)
+- [Lazorkit GitHub](https://github.com/lazor-kit/lazor-kit)
 
-✅ **Passkey Wallet Integration** — Using `@lazorkit/wallet` for seamless authentication
+---
 
-✅ **Gasless Transactions** — Kora paymaster sponsors all transaction fees
+## 🏆 Lazorkit Bounty Submission
 
-✅ **Real-World Use Case** — Subscription payments that anyone can understand
+This project was built for the **Lazorkit Bounty** (December 2025 - January 2026).
 
-✅ **Comprehensive Documentation** — Tutorials, code comments, and technical specs
+### ✅ Required Deliverables
 
-✅ **Clean Code Structure** — TypeScript, proper separation of concerns
+| Requirement | Status | Details |
+|-------------|--------|---------|
+| Working Example Repo | ✅ Done | Next.js 14 with clean structure |
+| Quick-Start Guide | ✅ Done | This README |
+| 2+ Tutorials | ✅ Done | 4 tutorials (exceeds requirement!) |
+| Live Demo | ✅ Done | Deployed on Vercel |
+
+### ✅ SDK Integration Quality
+
+| Feature | Implementation |
+|---------|---------------|
+| **Passkey Authentication** | `useWallet()` hook from @lazorkit/wallet |
+| **Smart Wallet** | PDA derived from WebAuthn credential |
+| **Gasless Transactions** | Kora Paymaster sponsors all TX fees |
+| **Session Persistence** | Credential stored in device Secure Enclave |
+
+### ✅ Code Quality
+
+- 🔷 **TypeScript** - Full type safety across all files
+- 📝 **Comments** - JSDoc + inline documentation
+- 🧩 **Modular** - Reusable hooks, components, utilities
+- 🎨 **Clean UI** - Tailwind CSS with consistent design
+- 🧪 **Mock Mode** - Developer-friendly testing without real tokens
+
+### 📊 Project Statistics
+
+| Metric | Count |
+|--------|-------|
+| Components | 21+ TSX files |
+| Tutorials | 4 markdown guides |
+| Tech Spec | 1,400+ lines |
+| API Routes | 8 endpoints |
 
 ---
 
@@ -383,7 +437,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Lazorkit](https://lazorkit.com) for the amazing SDK
 - [Solana Foundation](https://solana.com) for the blockchain
 - [Vercel](https://vercel.com) for hosting
+- [Neon Database](https://neon.tech) for PostgreSQL hosting
 
 ---
 
-**Built with ❤️ for the Lazorkit Bounty**
+<div align="center">
+  <strong>Built with ❤️ for the Lazorkit Bounty</strong>
+  <br>
+  <sub>by <a href="https://github.com/xDzaky">xDzaky</a></sub>
+</div>
