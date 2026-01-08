@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
         const newUser = await prisma.user.create({
           data: {
             walletAddress: body.walletAddress,
+            credentialId: `mock_${body.walletAddress}`,
+            publicKey: `mock_pubkey_${body.walletAddress}`,
           },
         });
         userId = newUser.id;

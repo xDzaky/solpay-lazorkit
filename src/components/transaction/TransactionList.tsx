@@ -176,7 +176,7 @@ export function TransactionList({ transactions, isLoading }: TransactionListProp
         amount: tx.amount,
         token: tx.token,
         status: tx.status === 'confirmed' ? 'CONFIRMED' : tx.status === 'pending' ? 'PENDING' : 'FAILED',
-        type: tx.type,
+        type: 'SUBSCRIPTION_PAYMENT' as const,
         createdAt: new Date(tx.timestamp).toISOString(),
         confirmedAt: tx.status === 'confirmed' ? new Date(tx.timestamp).toISOString() : null,
       }))

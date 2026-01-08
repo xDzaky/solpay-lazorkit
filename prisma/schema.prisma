@@ -34,10 +34,10 @@ model User {
   // WebAuthn/Passkey Credentials
   // ─────────────────────────────────────────────────────────────────────────
   // Unique credential ID from WebAuthn (Base64 encoded)
-  credentialId String @unique
+  credentialId String? @unique
 
   // Public key from the passkey (Base64 encoded, 33 bytes compressed secp256r1)
-  publicKey String
+  publicKey String?
 
   // ─────────────────────────────────────────────────────────────────────────
   // User Metadata
