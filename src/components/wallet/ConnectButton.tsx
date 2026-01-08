@@ -12,9 +12,11 @@ import { useWallet } from "@lazorkit/wallet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useUserStore } from "@/store/userStore";
+import { useBalance } from "@/hooks";
 import { createUser } from "@/lib/api";
 import { formatAddress, getErrorMessage, isUserCancellation } from "@/lib/utils";
-import { Fingerprint, LogOut, Wallet, Copy, Check, ExternalLink } from "lucide-react";
+import { MOCK_MODE } from "@/lib/mock-mode";
+import { Fingerprint, LogOut, Wallet, Copy, Check, ExternalLink, Coins } from "lucide-react";
 import { getExplorerUrl } from "@/lib/constants";
 
 // =============================================================================
@@ -70,6 +72,11 @@ export function ConnectButton({
   } = useWallet();
 
   const { setUser, clearUser } = useUserStore();
+
+  // Get balance
+  const { formattedBalance, isLoading: balanceLoading } = useBalance(
+    smartWalletPubkey?.toString()
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // Local State
@@ -163,9 +170,16 @@ export function ConnectButton({
             Connected
           </Badge>
 
+          {/* Balance Display */}
+          <div className="flex items-center gap-1 text-sm font-medium">
+            <Coins className="w-3.5 h-3.5 text-yellow-500" />
+            <span>{balanceLoading ? "..." : `$${formattedBalance}`}</span>
+            {MOCK_MODE && <span className="text-[10px] text-muted-foreground">(Mock)</span>}
+          </div>
+
           {/* Address */}
           {showAddress && (
-            <span className="font-mono text-sm">
+            <span className="font-mono text-sm text-muted-foreground">
               {formatAddress(address, 4, 4)}
             </span>
           )}

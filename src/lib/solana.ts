@@ -21,6 +21,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { RPC_URL, TOKENS, VAULT_ADDRESS } from "./constants";
+import { MOCK_MODE, getMockBalance, logMockActivity } from "./mock-mode";
 
 // =============================================================================
 // CONNECTION
@@ -82,6 +83,13 @@ export async function getOrCreateAssociatedTokenAccount(
  * @returns Balance in USDC's smallest unit (6 decimals)
  */
 export async function getUsdcBalance(walletAddress: string): Promise<number> {
+  // In mock mode, return simulated balance
+  if (MOCK_MODE) {
+    const balance = getMockBalance();
+    logMockActivity('Getting USDC balance', { walletAddress, balance });
+    return balance;
+  }
+
   const connection = getConnection();
   const wallet = new PublicKey(walletAddress);
   const mint = new PublicKey(TOKENS.USDC.mint);

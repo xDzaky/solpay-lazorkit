@@ -2,15 +2,18 @@
 // TRANSACTION LIST COMPONENT
 // =============================================================================
 // Displays a list of user transactions with status indicators.
+// Supports mock mode for testing.
 // =============================================================================
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUsdc, formatDateTime, formatSignature } from "@/lib/utils";
 import { getExplorerUrl } from "@/lib/constants";
-import { ExternalLink, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
+import { MOCK_MODE, getMockTransactions, type MockTransaction } from "@/lib/mock-mode";
+import { ExternalLink, ArrowUpRight, ArrowDownLeft, RefreshCw, Beaker } from "lucide-react";
 
 // =============================================================================
 // TYPES
@@ -52,7 +55,7 @@ const typeConfig = {
 // TRANSACTION ITEM
 // =============================================================================
 
-function TransactionItem({ transaction }: { transaction: Transaction }) {
+function TransactionItem({ transaction, isMock = false }: { transaction: Transaction; isMock?: boolean }) {
   const status = statusConfig[transaction.status];
   const type = typeConfig[transaction.type];
   const TypeIcon = type.icon;
@@ -66,15 +69,22 @@ function TransactionItem({ transaction }: { transaction: Transaction }) {
         </div>
         <div>
           <p className="font-medium">{type.label}</p>
-          <a
-            href={getExplorerUrl("tx", transaction.signature)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-          >
-            {formatSignature(transaction.signature)}
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          {isMock ? (
+            <span className="text-sm text-muted-foreground flex items-center gap-1">
+              {formatSignature(transaction.signature)}
+              <Badge variant="outline" className="text-[10px] px-1">Mock</Badge>
+            </span>
+          ) : (
+            <a
+              href={getExplorerUrl("tx", transaction.signature)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+            >
+              {formatSignature(transaction.signature)}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       </div>
 
@@ -142,8 +152,38 @@ function TransactionSkeleton() {
  * ```
  */
 export function TransactionList({ transactions, isLoading }: TransactionListProps) {
+  // Track mock transactions for real-time updates
+  const [mockTransactions, setMockTransactions] = useState<MockTransaction[]>([]);
+
+  // Poll for mock transactions in mock mode
+  useEffect(() => {
+    if (!MOCK_MODE) return;
+
+    const updateMockTx = () => {
+      setMockTransactions(getMockTransactions());
+    };
+
+    updateMockTx();
+    const interval = setInterval(updateMockTx, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Convert mock transactions to display format
+  const displayTransactions: Transaction[] = MOCK_MODE 
+    ? mockTransactions.map(tx => ({
+        id: tx.id,
+        signature: tx.signature,
+        amount: tx.amount,
+        token: tx.token,
+        status: tx.status === 'confirmed' ? 'CONFIRMED' : tx.status === 'pending' ? 'PENDING' : 'FAILED',
+        type: tx.type,
+        createdAt: new Date(tx.timestamp).toISOString(),
+        confirmedAt: tx.status === 'confirmed' ? new Date(tx.timestamp).toISOString() : null,
+      }))
+    : transactions;
+
   // Loading state
-  if (isLoading) {
+  if (isLoading && !MOCK_MODE) {
     return (
       <Card>
         <CardHeader>
@@ -162,17 +202,22 @@ export function TransactionList({ transactions, isLoading }: TransactionListProp
   }
 
   // Empty state
-  if (transactions.length === 0) {
+  if (displayTransactions.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Transaction History
+            {MOCK_MODE && <Beaker className="w-4 h-4 text-yellow-500" />}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <p>No transactions yet</p>
             <p className="text-sm mt-1">
-              Subscribe to a plan to see your first transaction!
+              {MOCK_MODE 
+                ? "Subscribe to a plan to create mock transactions!" 
+                : "Subscribe to a plan to see your first transaction!"}
             </p>
           </div>
         </CardContent>
@@ -184,11 +229,19 @@ export function TransactionList({ transactions, isLoading }: TransactionListProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transaction History</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Transaction History
+          {MOCK_MODE && (
+            <Badge variant="warning" className="text-xs">
+              <Beaker className="w-3 h-3 mr-1" />
+              Mock
+            </Badge>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {transactions.map((tx) => (
-          <TransactionItem key={tx.id} transaction={tx} />
+        {displayTransactions.map((tx) => (
+          <TransactionItem key={tx.id} transaction={tx} isMock={MOCK_MODE} />
         ))}
       </CardContent>
     </Card>

@@ -30,6 +30,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         solana:
           "bg-gradient-to-r from-solana-purple to-solana-green text-white shadow hover:opacity-90 active:scale-[0.98]",
+        success:
+          "bg-green-600 text-white shadow hover:bg-green-700 active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-4 py-2",

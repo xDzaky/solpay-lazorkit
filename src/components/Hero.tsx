@@ -1,15 +1,36 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useWallet } from "@lazorkit/wallet";
-import { Zap, CreditCard, Fingerprint } from "lucide-react";
+import { Zap, CreditCard, Fingerprint, Sparkles } from "lucide-react";
 import { ConnectButton } from "@/components/wallet/ConnectButton";
+import { MOCK_MODE, getMockBalance } from "@/lib/mock-mode";
+import { formatUsdc } from "@/lib/utils";
 
 export function Hero() {
     const { smartWalletPubkey, isConnected, isConnecting } = useWallet();
+    const [balance, setBalance] = useState(0);
+    const [mounted, setMounted] = useState(false);
+
+    // Sync balance
+    useEffect(() => {
+        setMounted(true);
+        if (!MOCK_MODE) return;
+
+        const updateBalance = () => {
+            setBalance(getMockBalance());
+        };
+
+        updateBalance();
+        const interval = setInterval(updateBalance, 500);
+        return () => clearInterval(interval);
+    }, []);
 
     const formatAddress = (addr: string) => {
         return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
     };
+
+    const displayBalance = mounted && MOCK_MODE ? formatUsdc(balance) : "$0.00";
 
     return (
         <main className="relative z-10 pt-20 pb-32">
@@ -54,13 +75,20 @@ export function Hero() {
                         <div>
                             <p className="text-slate-400 text-sm font-medium mb-1">
                                 USDC Balance
+                                {MOCK_MODE && mounted && (
+                                    <span className="ml-1 text-yellow-500 text-[10px]">(Mock)</span>
+                                )}
                             </p>
                             <p className="text-3xl font-semibold text-slate-900 tracking-tight">
-                                $0.00
+                                {isConnected ? displayBalance : "$0.00"}
                             </p>
                         </div>
-                        <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                            <CreditCard className="w-5 h-5" />
+                        <div className="h-10 w-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-500">
+                            {isConnected ? (
+                                <Sparkles className="w-5 h-5" />
+                            ) : (
+                                <CreditCard className="w-5 h-5" />
+                            )}
                         </div>
                     </div>
 

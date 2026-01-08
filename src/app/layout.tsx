@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/providers";
 import { APP_CONFIG } from "@/lib/constants";
+import { MockModeIndicator } from "@/components/MockModeIndicator";
 import "./globals.css";
 
 // =============================================================================
@@ -90,7 +91,10 @@ export default function RootLayout({
           <div className="absolute top-[20%] left-[50%] w-[40rem] h-[40rem] bg-purple-200/20 rounded-full blur-3xl mix-blend-multiply opacity-70 animate-blob animation-delay-4000 transform -translate-x-1/2"></div>
         </div>
 
-        <Providers>{children}</Providers>
+        <Providers>
+          <MockModeIndicator />
+          {children}
+        </Providers>
       </body>
     </html>
   );

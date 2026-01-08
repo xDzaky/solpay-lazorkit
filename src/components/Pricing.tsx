@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@lazorkit/wallet";
-import { Check, Sparkles, Loader2 } from "lucide-react";
+import { Check, Sparkles, Loader2, Crown, PartyPopper } from "lucide-react";
 import { useSubscribe } from "@/hooks/useSubscribe";
+import { MOCK_MODE, getMockSubscription, getMockBalance } from "@/lib/mock-mode";
+import { formatUsdc } from "@/lib/utils";
+import confetti from "canvas-confetti";
 
 const plans = [
     {
-        id: "basic",
+        id: "plan_basic",
         name: "Basic",
         description: "Perfect for individuals just getting started.",
         price: 5.0,
@@ -21,7 +24,7 @@ const plans = [
         buttonText: "Subscribe Now",
     },
     {
-        id: "pro",
+        id: "plan_pro",
         name: "Pro",
         description: "For professionals who need more power and detailed insights.",
         price: 15.0,
@@ -37,7 +40,7 @@ const plans = [
         buttonText: "Subscribe Now",
     },
     {
-        id: "enterprise",
+        id: "plan_enterprise",
         name: "Enterprise",
         description: "For large teams with advanced compliance needs.",
         price: 50.0,
@@ -58,10 +61,67 @@ export function Pricing() {
     const { subscribe, isProcessing, error } = useSubscribe();
     const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [currentSubscription, setCurrentSubscription] = useState<string | null>(null);
+    const [balance, setBalance] = useState(0);
+
+    // Sync with mock data
+    useEffect(() => {
+        if (!MOCK_MODE) return;
+
+        const updateData = () => {
+            const sub = getMockSubscription();
+            setCurrentSubscription(sub?.planId || null);
+            setBalance(getMockBalance());
+        };
+
+        updateData();
+        const interval = setInterval(updateData, 500);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Confetti celebration
+    const celebrate = () => {
+        const duration = 3000;
+        const end = Date.now() + duration;
+
+        const frame = () => {
+            confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#6366f1', '#8b5cf6', '#10b981']
+            });
+            confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#6366f1', '#8b5cf6', '#10b981']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        };
+        frame();
+    };
 
     const handleSubscribe = async (planId: string, planName: string, price: number) => {
         if (!isConnected) {
             alert("Please connect your wallet first!");
+            return;
+        }
+
+        // Check if already subscribed to this plan
+        if (currentSubscription === planId) {
+            alert("You are already subscribed to this plan!");
+            return;
+        }
+
+        // Check balance
+        if (MOCK_MODE && balance < price * 1_000_000) {
+            alert(`Insufficient balance! You need $${price} but only have $${formatUsdc(balance)}`);
             return;
         }
 
@@ -72,6 +132,8 @@ export function Pricing() {
 
         if (result.success) {
             setSuccessMessage(`Successfully subscribed to ${planName}! Tx: ${result.signature?.slice(0, 8)}...`);
+            celebrate(); // 🎉 Confetti!
+            setCurrentSubscription(planId);
         }
 
         setProcessingPlanId(null);
@@ -80,6 +142,8 @@ export function Pricing() {
     const handleContactSales = () => {
         window.open("https://t.me/lazorkit", "_blank");
     };
+
+    const isCurrentPlan = (planId: string) => currentSubscription === planId;
 
     return (
         <section className="relative z-10 py-24">
@@ -109,12 +173,24 @@ export function Pricing() {
                     {plans.map((plan) => (
                         <div
                             key={plan.id}
-                            className={`relative bg-white p-8 rounded-2xl border transition-all ${plan.highlighted
+                            className={`relative bg-white p-8 rounded-2xl border transition-all ${
+                                isCurrentPlan(plan.id)
+                                    ? "border-emerald-300 shadow-xl shadow-emerald-500/10 ring-2 ring-emerald-500/30"
+                                    : plan.highlighted
                                     ? "border-indigo-200 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/20 transform md:-translate-y-4 z-10"
                                     : "border-slate-200 hover:border-slate-300"
                                 }`}
                         >
-                            {plan.highlighted && (
+                            {/* Current Plan Badge */}
+                            {isCurrentPlan(plan.id) && (
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    <Crown className="w-3 h-3" />
+                                    Current Plan
+                                </div>
+                            )}
+                            
+                            {/* Most Popular Badge */}
+                            {plan.highlighted && !isCurrentPlan(plan.id) && (
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-md">
                                     Most Popular
                                 </div>
@@ -139,7 +215,12 @@ export function Pricing() {
                                         className="flex items-center gap-3 text-sm text-slate-600"
                                     >
                                         <Check
-                                            className={`w-4 h-4 ${plan.highlighted ? "text-indigo-500" : "text-emerald-500"
+                                            className={`w-4 h-4 ${
+                                                isCurrentPlan(plan.id) 
+                                                    ? "text-emerald-500" 
+                                                    : plan.highlighted 
+                                                    ? "text-indigo-500" 
+                                                    : "text-emerald-500"
                                                 }`}
                                         />
                                         {feature}
@@ -147,12 +228,20 @@ export function Pricing() {
                                 ))}
                             </ul>
 
-                            {plan.id === "enterprise" ? (
+                            {plan.id === "plan_enterprise" ? (
                                 <button
                                     onClick={handleContactSales}
                                     className="w-full py-3 bg-indigo-50 text-indigo-600 font-medium rounded-lg hover:bg-indigo-100 transition-colors"
                                 >
                                     Contact Sales
+                                </button>
+                            ) : isCurrentPlan(plan.id) ? (
+                                <button
+                                    disabled
+                                    className="w-full py-3 bg-emerald-100 text-emerald-700 font-medium rounded-lg cursor-default flex items-center justify-center gap-2"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    Subscribed
                                 </button>
                             ) : (
                                 <button
@@ -168,6 +257,8 @@ export function Pricing() {
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                             Processing...
                                         </span>
+                                    ) : currentSubscription ? (
+                                        "Upgrade Plan"
                                     ) : (
                                         plan.buttonText
                                     )}
