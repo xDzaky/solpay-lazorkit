@@ -8,7 +8,43 @@
 
 ---
 
-## 📺 Demo Video
+## � Screenshots
+
+### Landing Page
+![Landing Page](./public/screenshots/landing-page.png)
+*Clean landing page with passkey authentication*
+
+### Dashboard
+![Dashboard](./public/screenshots/dashboard.png)
+*User dashboard with balance overview and quick actions*
+
+### Send Payment
+![Send Payment](./public/screenshots/send.png)
+*Send SOL or USDC to any Solana address*
+
+### Request Payment
+![Request Payment](./public/screenshots/request.png)
+*Generate QR code for receiving payments*
+
+### Split Bill
+![Split Bill](./public/screenshots/split-bill.png)
+*Split bills between multiple people with equal amounts*
+
+### Transaction History
+![Transaction History](./public/screenshots/transactions.png)
+*View all transaction history with status indicators*
+
+### Subscribe
+![Subscribe](./public/screenshots/subscribe.png)
+*Choose subscription plans with USDC payments*
+
+### Settings
+![Settings](./public/screenshots/settings.png)
+*Manage account and wallet settings*
+
+---
+
+## �📺 Demo Video
 
 > 🎥 [Watch the demo video](https://youtube.com/watch?v=YOUR_VIDEO_ID)
 
@@ -167,9 +203,21 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 solpay-lazorkit/
 ├── prisma/
 │   ├── schema.prisma      # Database models
-│   └── seed.ts            # Demo subscription plans
+│   ├── seed.ts            # Demo subscription plans
+│   └── migrations/        # Database migrations
 ├── src/
 │   ├── app/
+│   │   ├── (protected)/   # Authenticated routes
+│   │   │   ├── dashboard/     # User dashboard
+│   │   │   ├── send/          # Send payments
+│   │   │   ├── request/       # Request payments (QR)
+│   │   │   ├── split/         # Split bill feature
+│   │   │   ├── transactions/  # Transaction history
+│   │   │   │   └── [id]/      # Transaction detail
+│   │   │   ├── subscribe/     # Subscription plans
+│   │   │   └── settings/      # User settings
+│   │   ├── about/         # About page
+│   │   ├── docs/          # Documentation page
 │   │   ├── api/           # Next.js API routes
 │   │   │   ├── plans/     # GET subscription plans
 │   │   │   ├── users/     # User CRUD
@@ -179,24 +227,66 @@ solpay-lazorkit/
 │   │   └── page.tsx       # Landing page
 │   ├── components/
 │   │   ├── ui/            # Reusable UI components
-│   │   ├── wallet/        # ConnectButton, WalletInfo
+│   │   ├── auth/          # ProtectedRoute
+│   │   ├── dashboard/     # Sidebar, BalanceCard, QuickActions
+│   │   ├── wallet/        # ConnectButton
+│   │   ├── payment/       # PaymentQRCode
 │   │   ├── subscription/  # PlanCard, PlanGrid
 │   │   └── transaction/   # TransactionList
+│   ├── hooks/
+│   │   ├── useBalance.ts      # Balance fetching
+│   │   ├── useRealBalance.ts  # Real blockchain balance
+│   │   ├── useSendTransaction.ts  # Transaction sending
+│   │   ├── useSubscribe.ts    # Subscription management
+│   │   └── useTransactions.ts # Transaction history
 │   ├── lib/
 │   │   ├── constants.ts   # Config, token addresses
 │   │   ├── solana.ts      # Blockchain utilities
 │   │   ├── prisma.ts      # Database client
+│   │   ├── mock-mode.ts   # Mock data for testing
 │   │   └── utils.ts       # Helper functions
 │   ├── providers/
 │   │   ├── WalletProvider.tsx   # Lazorkit context
 │   │   └── QueryProvider.tsx    # React Query
 │   └── store/
-│       └── userStore.ts   # Zustand state
+│       ├── userStore.ts         # User state
+│       └── subscriptionStore.ts # Subscription state
 ├── docs/
 │   └── tutorials/         # Integration guides
+├── public/
+│   └── screenshots/       # App screenshots
 ├── TECH_SPEC.md          # Technical specification
 └── README.md             # You are here!
 ```
+
+---
+
+## 🎯 Features
+
+### Core Features
+
+| Feature | Description | Route |
+|---------|-------------|-------|
+| 🔐 **Passkey Login** | Biometric authentication (FaceID/TouchID) | `/` |
+| 📊 **Dashboard** | Balance overview with quick actions | `/dashboard` |
+| 💸 **Send Payment** | Send SOL or USDC to any address | `/send` |
+| 📱 **Request Payment** | Generate QR codes for receiving | `/request` |
+| 👥 **Split Bill** | Split bills between multiple people | `/split` |
+| 📜 **Transaction History** | View all past transactions | `/transactions` |
+| 🔍 **Transaction Detail** | Detailed view with explorer link | `/transactions/[id]` |
+| 💳 **Subscriptions** | Choose and manage subscription plans | `/subscribe` |
+| ⚙️ **Settings** | Manage account and preferences | `/settings` |
+| ℹ️ **About** | Project overview and features | `/about` |
+| 📖 **Documentation** | Developer integration guide | `/docs` |
+
+### Technical Features
+
+- ✅ **Gasless Transactions** - No SOL required for gas fees
+- ✅ **Smart Wallet** - PDA derived from passkey
+- ✅ **Session Persistence** - Stay logged in across sessions
+- ✅ **Mock Mode** - Test without real tokens
+- ✅ **Mobile Responsive** - Works on all devices
+- ✅ **Protected Routes** - Automatic redirect for unauthenticated users
 
 ---
 
@@ -408,10 +498,28 @@ This project was built for the **Lazorkit Bounty** (December 2025 - January 2026
 
 | Metric | Count |
 |--------|-------|
-| Components | 21+ TSX files |
+| Pages | 11 routes |
+| Components | 25+ TSX files |
+| Custom Hooks | 5 hooks |
 | Tutorials | 4 markdown guides |
 | Tech Spec | 1,400+ lines |
 | API Routes | 8 endpoints |
+
+### 🎯 App Routes
+
+| Route | Type | Description |
+|-------|------|-------------|
+| `/` | Public | Landing page with passkey auth |
+| `/about` | Public | About page & features |
+| `/docs` | Public | Developer documentation |
+| `/dashboard` | Protected | User dashboard |
+| `/send` | Protected | Send SOL/USDC |
+| `/request` | Protected | Generate payment QR |
+| `/split` | Protected | Split bill feature |
+| `/transactions` | Protected | Transaction history |
+| `/transactions/[id]` | Protected | Transaction detail |
+| `/subscribe` | Protected | Subscription plans |
+| `/settings` | Protected | User settings |
 
 ---
 

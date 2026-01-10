@@ -17,7 +17,8 @@ import {
   Settings,
   CreditCard,
   LogOut,
-  Wallet
+  Wallet,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/send", label: "Send", icon: Send },
   { href: "/request", label: "Request", icon: QrCode },
+  { href: "/split", label: "Split Bill", icon: Users },
   { href: "/transactions", label: "History", icon: History },
   { href: "/subscribe", label: "Subscribe", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },

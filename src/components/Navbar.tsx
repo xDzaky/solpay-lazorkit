@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useWallet } from "@lazorkit/wallet";
 import { Wallet, Copy, ExternalLink, LogOut, Check } from "lucide-react";
 import { getExplorerUrl } from "@/lib/constants";
@@ -35,14 +36,32 @@ export function Navbar() {
     return (
         <nav className="relative z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-gradient-to-tr from-indigo-500 to-teal-400 rounded-lg flex items-center justify-center text-white shadow-sm">
-                        <Wallet className="w-4 h-4" />
+                <div className="flex items-center gap-6">
+                    <Link href="/" className="flex items-center gap-3">
+                        <div className="h-8 w-8 bg-gradient-to-tr from-indigo-500 to-teal-400 rounded-lg flex items-center justify-center text-white shadow-sm">
+                            <Wallet className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold text-lg tracking-tight">SolPay</span>
+                        <span className="bg-slate-100 text-slate-500 text-xs font-medium px-2 py-0.5 rounded-full border border-slate-200">
+                            Devnet
+                        </span>
+                    </Link>
+                    
+                    {/* Navigation Links */}
+                    <div className="hidden md:flex items-center gap-4">
+                        <Link 
+                            href="/about" 
+                            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                        >
+                            About
+                        </Link>
+                        <Link 
+                            href="/docs" 
+                            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                        >
+                            Docs
+                        </Link>
                     </div>
-                    <span className="font-semibold text-lg tracking-tight">SolPay</span>
-                    <span className="bg-slate-100 text-slate-500 text-xs font-medium px-2 py-0.5 rounded-full border border-slate-200">
-                        Devnet
-                    </span>
                 </div>
 
                 <div className="flex items-center gap-4">
