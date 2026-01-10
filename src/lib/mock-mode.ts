@@ -15,6 +15,7 @@ export const TEST_WALLET_ADDRESS = '3DsES4XP6HwsLgXmGc53DzJEpukfieiBP2tmfQVmB8Vc
 // localStorage keys
 const STORAGE_KEYS = {
   BALANCE: 'solpay_mock_balance',
+  SOL_BALANCE: 'solpay_mock_sol_balance',
   TRANSACTIONS: 'solpay_mock_transactions',
   SUBSCRIPTION: 'solpay_mock_subscription',
 };
@@ -25,6 +26,8 @@ const STORAGE_KEYS = {
 
 // Simulated USDC balance (1000 USDC = 1,000,000,000 in smallest unit with 6 decimals)
 export const MOCK_USDC_BALANCE = 1000_000_000; // 1000 USDC
+// Simulated SOL balance (10 SOL = 10,000,000,000 lamports)
+export const MOCK_SOL_BALANCE = 10_000_000_000; // 10 SOL
 
 // Helper to check if we're in browser
 function isBrowser(): boolean {
@@ -43,6 +46,18 @@ export function getMockBalance(): number {
   return MOCK_USDC_BALANCE;
 }
 
+export function getMockSolBalance(): number {
+  if (!isBrowser()) return MOCK_SOL_BALANCE;
+  
+  const stored = localStorage.getItem(STORAGE_KEYS.SOL_BALANCE);
+  if (stored) {
+    return parseInt(stored, 10);
+  }
+  // Initialize with default balance
+  localStorage.setItem(STORAGE_KEYS.SOL_BALANCE, MOCK_SOL_BALANCE.toString());
+  return MOCK_SOL_BALANCE;
+}
+
 export function deductMockBalance(amount: number): void {
   if (!isBrowser()) return;
   
@@ -51,9 +66,18 @@ export function deductMockBalance(amount: number): void {
   localStorage.setItem(STORAGE_KEYS.BALANCE, newBalance.toString());
 }
 
+export function deductMockSolBalance(amount: number): void {
+  if (!isBrowser()) return;
+  
+  const currentBalance = getMockSolBalance();
+  const newBalance = currentBalance - amount;
+  localStorage.setItem(STORAGE_KEYS.SOL_BALANCE, newBalance.toString());
+}
+
 export function resetMockBalance(): void {
   if (!isBrowser()) return;
   localStorage.setItem(STORAGE_KEYS.BALANCE, MOCK_USDC_BALANCE.toString());
+  localStorage.setItem(STORAGE_KEYS.SOL_BALANCE, MOCK_SOL_BALANCE.toString());
 }
 
 // =============================================================================
@@ -63,24 +87,29 @@ export function resetMockBalance(): void {
 export interface MockTransaction {
   id: string;
   signature: string;
-  from: string;
-  to: string;
+  from?: string;
+  fromAddress?: string;
+  to?: string;
+  toAddress?: string;
   amount: number;
   token: string;
-  status: 'confirmed' | 'pending' | 'failed';
-  timestamp: number;
-  planId: string;
-  planName: string;
-  type: 'SUBSCRIPTION_PAYMENT' | 'TRANSFER';
+  status: 'confirmed' | 'pending' | 'failed' | 'SUCCESS' | 'PENDING' | 'FAILED';
+  timestamp?: number;
+  createdAt: Date;
+  planId?: string;
+  planName?: string;
+  description?: string;
+  type: 'SUBSCRIPTION_PAYMENT' | 'TRANSFER' | 'SEND' | 'RECEIVE';
 }
 
-export function addMockTransaction(tx: Omit<MockTransaction, 'id' | 'signature' | 'timestamp' | 'status'>): MockTransaction {
+export function addMockTransaction(tx: Omit<MockTransaction, 'id' | 'signature' | 'createdAt' | 'status'>): MockTransaction {
   const newTx: MockTransaction = {
     ...tx,
     id: `mock_tx_${Date.now()}_${Math.random().toString(36).substring(7)}`,
     signature: generateMockSignature(),
     timestamp: Date.now(),
-    status: 'confirmed',
+    createdAt: new Date(),
+    status: 'SUCCESS',
   };
   
   if (isBrowser()) {
@@ -154,9 +183,13 @@ export function clearMockSubscription(): void {
 export function clearAllMockData(): void {
   if (!isBrowser()) return;
   localStorage.removeItem(STORAGE_KEYS.BALANCE);
+  localStorage.removeItem(STORAGE_KEYS.SOL_BALANCE);
   localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
   localStorage.removeItem(STORAGE_KEYS.SUBSCRIPTION);
 }
+
+// Alias for convenience
+export const clearMockData = clearAllMockData;
 
 // =============================================================================
 // HELPERS

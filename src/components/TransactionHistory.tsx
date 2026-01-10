@@ -29,10 +29,12 @@ export function TransactionHistory() {
         signature: tx.signature,
         amount: tx.amount,
         token: tx.token,
-        status: tx.status === 'confirmed' ? 'CONFIRMED' as const : tx.status === 'pending' ? 'PENDING' as const : 'FAILED' as const,
-        type: tx.type as "SUBSCRIPTION_PAYMENT" | "ONE_TIME_PAYMENT" | "REFUND",
-        createdAt: new Date(tx.timestamp).toISOString(),
-        confirmedAt: tx.status === 'confirmed' ? new Date(tx.timestamp).toISOString() : null,
+        status: tx.status === 'confirmed' || tx.status === 'SUCCESS' ? 'CONFIRMED' as const : tx.status === 'pending' || tx.status === 'PENDING' ? 'PENDING' as const : 'FAILED' as const,
+        type: (tx.type === 'SEND' || tx.type === 'RECEIVE' || tx.type === 'TRANSFER' ? 'ONE_TIME_PAYMENT' : tx.type) as "SUBSCRIPTION_PAYMENT" | "ONE_TIME_PAYMENT" | "REFUND",
+        createdAt: tx.createdAt ? new Date(tx.createdAt).toISOString() : tx.timestamp ? new Date(tx.timestamp).toISOString() : new Date().toISOString(),
+        confirmedAt: (tx.status === 'confirmed' || tx.status === 'SUCCESS') 
+            ? (tx.createdAt ? new Date(tx.createdAt).toISOString() : tx.timestamp ? new Date(tx.timestamp).toISOString() : new Date().toISOString()) 
+            : null,
     }));
 
     // Not connected state

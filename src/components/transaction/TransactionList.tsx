@@ -175,10 +175,12 @@ export function TransactionList({ transactions, isLoading }: TransactionListProp
         signature: tx.signature,
         amount: tx.amount,
         token: tx.token,
-        status: tx.status === 'confirmed' ? 'CONFIRMED' : tx.status === 'pending' ? 'PENDING' : 'FAILED',
+        status: (tx.status === 'confirmed' || tx.status === 'SUCCESS') ? 'CONFIRMED' : (tx.status === 'pending' || tx.status === 'PENDING') ? 'PENDING' : 'FAILED',
         type: 'SUBSCRIPTION_PAYMENT' as const,
-        createdAt: new Date(tx.timestamp).toISOString(),
-        confirmedAt: tx.status === 'confirmed' ? new Date(tx.timestamp).toISOString() : null,
+        createdAt: tx.createdAt ? new Date(tx.createdAt).toISOString() : tx.timestamp ? new Date(tx.timestamp).toISOString() : new Date().toISOString(),
+        confirmedAt: (tx.status === 'confirmed' || tx.status === 'SUCCESS') 
+          ? (tx.createdAt ? new Date(tx.createdAt).toISOString() : tx.timestamp ? new Date(tx.timestamp).toISOString() : new Date().toISOString()) 
+          : null,
       }))
     : transactions;
 
