@@ -1,0 +1,326 @@
+// =============================================================================
+// PRISMA SCHEMA - SolPay Subscription Platform
+// =============================================================================
+// This schema defines the database structure for managing users, subscriptions,
+// and transactions in the SolPay platform using Lazorkit smart wallets.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // PostgreSQL for production (Neon Database)
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// USER MODEL
+// =============================================================================
+// Stores information about connected wallets and their WebAuthn credentials.
+// Each user is uniquely identified by their Lazorkit smart wallet address.
+// =============================================================================
+model User {
+  id String @id @default(cuid())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Solana Wallet Information
+  // ─────────────────────────────────────────────────────────────────────────
+  // The smart wallet PDA address (this is the user's main Solana address)
+  walletAddress String @unique
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WebAuthn/Passkey Credentials
+  // ─────────────────────────────────────────────────────────────────────────
+  // Unique credential ID from WebAuthn (Base64 encoded)
+  credentialId String? @unique
+
+  // Public key from the passkey (Base64 encoded, 33 bytes compressed secp256r1)
+  publicKey String?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // User Metadata
+  // ─────────────────────────────────────────────────────────────────────────
+  // Platform where the passkey was created (e.g., 'web', 'macIntel', 'windows')
+  platform String?
+
+  // Optional display name chosen by user
+  accountName String?
+
+  // User's email for notifications (optional)
+  email String?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Timestamps
+  // ─────────────────────────────────────────────────────────────────────────
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime @default(now())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Relations
+  // ─────────────────────────────────────────────────────────────────────────
+  subscriptions Subscription[]
+  transactions  Transaction[]
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Indexes for faster queries
+  // ─────────────────────────────────────────────────────────────────────────
+  @@index([walletAddress])
+  @@index([credentialId])
+  @@index([email])
+}
+
+// =============================================================================
+// PLAN MODEL
+// =============================================================================
+// Defines subscription plans available for purchase.
+// Plans have different pricing tiers and feature sets.
+// =============================================================================
+model Plan {
+  id String @id @default(cuid())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Plan Details
+  // ─────────────────────────────────────────────────────────────────────────
+  // Display name (e.g., "Basic", "Pro", "Enterprise")
+  name String
+
+  // Short description of the plan
+  description String
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Pricing
+  // ─────────────────────────────────────────────────────────────────────────
+  // Price in USDC's smallest unit (6 decimals)
+  // Example: 5000000 = 5.00 USDC
+  priceUsdc Int
+
+  // Billing interval
+  interval PlanInterval @default(MONTHLY)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Features
+  // ─────────────────────────────────────────────────────────────────────────
+  // JSON array of feature strings
+  // Example: '["Unlimited projects", "Priority support", "API access"]'
+  features String
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Status
+  // ─────────────────────────────────────────────────────────────────────────
+  // Whether this plan is currently available for purchase
+  isActive Boolean @default(true)
+
+  // Display order in the UI (lower = first)
+  sortOrder Int @default(0)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Visual
+  // ─────────────────────────────────────────────────────────────────────────
+  // Badge text (e.g., "Most Popular", "Best Value")
+  badge String?
+
+  // Whether to highlight this plan in the UI
+  isHighlighted Boolean @default(false)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Timestamps
+  // ─────────────────────────────────────────────────────────────────────────
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Relations
+  // ─────────────────────────────────────────────────────────────────────────
+  subscriptions Subscription[]
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Indexes
+  // ─────────────────────────────────────────────────────────────────────────
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+// Billing interval options
+enum PlanInterval {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+// =============================================================================
+// SUBSCRIPTION MODEL
+// =============================================================================
+// Tracks user subscriptions to plans, including billing cycles and status.
+// =============================================================================
+model Subscription {
+  id String @id @default(cuid())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Foreign Keys
+  // ─────────────────────────────────────────────────────────────────────────
+  userId String
+  planId String
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Status
+  // ─────────────────────────────────────────────────────────────────────────
+  status SubscriptionStatus @default(PENDING)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Billing Dates
+  // ─────────────────────────────────────────────────────────────────────────
+  // When the subscription started
+  startDate DateTime @default(now())
+
+  // When the subscription ends (null if ongoing)
+  endDate DateTime?
+
+  // Next billing date (when to charge next)
+  nextBilling DateTime
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Payment Tracking
+  // ─────────────────────────────────────────────────────────────────────────
+  // Last successful payment timestamp
+  lastPaymentAt DateTime?
+
+  // Number of consecutive failed payment attempts
+  failedAttempts Int @default(0)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Cancellation
+  // ─────────────────────────────────────────────────────────────────────────
+  // When the user requested cancellation
+  cancelledAt DateTime?
+
+  // Reason for cancellation (optional feedback)
+  cancelReason String?
+
+  // Whether to cancel at end of current period (vs immediately)
+  cancelAtPeriodEnd Boolean @default(false)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Timestamps
+  // ─────────────────────────────────────────────────────────────────────────
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Relations
+  // ─────────────────────────────────────────────────────────────────────────
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         Plan          @relation(fields: [planId], references: [id])
+  transactions Transaction[]
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Indexes
+  // ─────────────────────────────────────────────────────────────────────────
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([nextBilling])
+}
+
+// Subscription status options
+enum SubscriptionStatus {
+  PENDING // Awaiting first payment confirmation
+  ACTIVE // Currently active and paid
+  PAST_DUE // Payment failed, in grace period
+  CANCELLED // User cancelled (may still be active until period end)
+  EXPIRED // Subscription ended
+}
+
+// =============================================================================
+// TRANSACTION MODEL
+// =============================================================================
+// Records all payment transactions, including subscription payments and refunds.
+// =============================================================================
+model Transaction {
+  id String @id @default(cuid())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Foreign Keys
+  // ─────────────────────────────────────────────────────────────────────────
+  userId         String
+  subscriptionId String?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Solana Transaction Data
+  // ─────────────────────────────────────────────────────────────────────────
+  // Transaction signature (unique identifier on Solana)
+  signature String @unique
+
+  // Slot number when transaction was confirmed
+  slot Int?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Payment Details
+  // ─────────────────────────────────────────────────────────────────────────
+  // Amount in token's smallest unit (e.g., 6 decimals for USDC)
+  amount Int
+
+  // Token symbol (e.g., "USDC", "SOL")
+  token String @default("USDC")
+
+  // Token mint address
+  tokenMint String
+
+  // Recipient wallet address
+  recipient String
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Transaction Type & Status
+  // ─────────────────────────────────────────────────────────────────────────
+  type   TransactionType
+  status TransactionStatus @default(PENDING)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Error Tracking
+  // ─────────────────────────────────────────────────────────────────────────
+  errorCode    String?
+  errorMessage String?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Metadata
+  // ─────────────────────────────────────────────────────────────────────────
+  // Additional data stored as JSON
+  metadata String?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Timestamps
+  // ─────────────────────────────────────────────────────────────────────────
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Relations
+  // ─────────────────────────────────────────────────────────────────────────
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Indexes
+  // ─────────────────────────────────────────────────────────────────────────
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([signature])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Transaction type options
+enum TransactionType {
+  SUBSCRIPTION_PAYMENT // Regular subscription billing
+  ONE_TIME_PAYMENT // Single purchase
+  REFUND // Refund to user
+}
+
+// Transaction status options
+enum TransactionStatus {
+  PENDING // Transaction submitted, awaiting confirmation
+  CONFIRMED // Transaction confirmed on-chain
+  FAILED // Transaction failed
+}
