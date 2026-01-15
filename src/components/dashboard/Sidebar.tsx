@@ -45,7 +45,7 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 min-h-screen">
+    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 fixed left-0 top-0 h-screen overflow-y-auto">
       {/* Logo */}
       <div className="p-6 border-b border-slate-100">
         <Link href="/dashboard" className="flex items-center gap-2">

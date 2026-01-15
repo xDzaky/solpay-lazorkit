@@ -26,7 +26,7 @@ export default function ProtectedLayout({
           <DashboardSidebar />
           
           {/* Main Content */}
-          <main className="flex-1 pb-20 lg:pb-0">
+          <main className="flex-1 pb-20 lg:pb-0 lg:pl-64">
             {children}
           </main>
         </div>
