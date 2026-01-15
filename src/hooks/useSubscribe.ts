@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useWallet } from "@lazorkit/wallet";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { buildSubscriptionPaymentInstruction } from "@/lib/solana";
+import { createSubscriptionMemoInstruction } from "@/lib/spl-memo";
 import { 
   MOCK_MODE, 
   simulateDelay, 
@@ -145,10 +146,24 @@ export function useSubscribe() {
         // ─────────────────────────────────────────────────────────────────────
         console.log(`📦 Building payment for ${planName}: $${priceUSDC} USDC`);
 
-        const instructions = await buildSubscriptionPaymentInstruction(
+        const transferInstructions = await buildSubscriptionPaymentInstruction(
           smartWalletPubkey.toString(),
           priceUSDC
         );
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Step 1.5: Add SPL Memo for transaction transparency
+        // ─────────────────────────────────────────────────────────────────────
+        console.log("📝 Adding SPL Memo for traceability...");
+        
+        const memoInstruction = createSubscriptionMemoInstruction(
+          planName,
+          `$${priceUSDC}/month`,
+          smartWalletPubkey
+        );
+        
+        // Combine memo + transfer instructions
+        const instructions = [memoInstruction, ...transferInstructions];
 
         // ─────────────────────────────────────────────────────────────────────
         // Step 2: Sign and send via Lazorkit (gasless!)

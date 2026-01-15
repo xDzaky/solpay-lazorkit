@@ -305,6 +305,65 @@ solpay-lazorkit/
 
 ---
 
+## ⭐ What Makes SolPay Unique
+
+SolPay goes **beyond basic subscriptions** to provide a complete payment ecosystem:
+
+### 🚀 Features You Won't Find Elsewhere
+
+| Feature | SolPay | Others |
+|---------|--------|--------|
+| 💸 **Send Payments** | ✅ Send USDC to any wallet | ❌ |
+| 📱 **QR Payment Requests** | ✅ Generate scannable QR codes | ❌ |
+| 👥 **Split Bills** | ✅ Equal split among participants | ❌ |
+| 🏪 **Merchant Portal** | ✅ Revenue analytics dashboard | ❌ |
+| 💧 **USDC Faucet** | ✅ Get test tokens instantly | ❌ |
+| 🏷️ **SPL Memo Protocol** | ✅ Full transaction transparency | ❌ |
+| 🧪 **Unit Tests** | ✅ 17+ Vitest test cases | ❌ |
+| 🗄️ **Database Persistence** | ✅ Prisma + PostgreSQL | ❌ |
+
+### 📊 Merchant Dashboard
+
+Track your revenue with built-in analytics:
+- Total revenue tracking
+- Monthly Recurring Revenue (MRR)
+- Active subscriber count
+- Churn rate monitoring
+- Visual charts (Pie & Bar)
+
+### 🏷️ SPL Memo Integration
+
+Every transaction includes on-chain metadata:
+
+```typescript
+// Subscription memo example
+{
+  "type": "subscription",
+  "version": "1.0.0",
+  "timestamp": 1736280000000,
+  "data": {
+    "planId": "pro-monthly",
+    "planName": "Pro Plan",
+    "priceUsdc": 9.99
+  }
+}
+```
+
+This enables:
+- Transaction categorization
+- Audit trails
+- Explorer transparency
+- Easy filtering
+
+### 💧 USDC Faucet
+
+One-click test token distribution:
+- Get 100 USDC instantly
+- Confetti celebration effect 🎉
+- Perfect for demos and testing
+
+---
+
 ## 🔑 Key Features Explained
 
 ### 1. Passkey Authentication

@@ -3,6 +3,7 @@
 // =============================================================================
 // Hook for sending SOL and USDC transactions
 // Supports both mock mode and real transactions
+// Includes SPL Memo for transaction transparency
 // =============================================================================
 
 "use client";
@@ -31,6 +32,7 @@ import {
   getMockBalance,
   getMockSolBalance,
 } from "@/lib/mock-mode";
+import { createTransferMemoInstruction } from "@/lib/spl-memo";
 import { TOKENS, RPC_URL } from "@/lib/constants";
 
 const USDC_MINT = TOKENS.USDC.mint;

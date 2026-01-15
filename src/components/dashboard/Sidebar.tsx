@@ -18,7 +18,8 @@ import {
   CreditCard,
   LogOut,
   Wallet,
-  Users
+  Users,
+  Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/split", label: "Split Bill", icon: Users },
   { href: "/transactions", label: "History", icon: History },
   { href: "/subscribe", label: "Subscribe", icon: CreditCard },
+  { href: "/merchant", label: "Merchant", icon: Store },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

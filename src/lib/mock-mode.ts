@@ -74,6 +74,28 @@ export function deductMockSolBalance(amount: number): void {
   localStorage.setItem(STORAGE_KEYS.SOL_BALANCE, newBalance.toString());
 }
 
+/**
+ * Add USDC to mock balance (for faucet)
+ */
+export function addMockBalance(amount: number): void {
+  if (!isBrowser()) return;
+  
+  const currentBalance = getMockBalance();
+  const newBalance = currentBalance + amount;
+  localStorage.setItem(STORAGE_KEYS.BALANCE, newBalance.toString());
+}
+
+/**
+ * Add SOL to mock balance (for faucet)
+ */
+export function addMockSolBalance(amount: number): void {
+  if (!isBrowser()) return;
+  
+  const currentBalance = getMockSolBalance();
+  const newBalance = currentBalance + amount;
+  localStorage.setItem(STORAGE_KEYS.SOL_BALANCE, newBalance.toString());
+}
+
 export function resetMockBalance(): void {
   if (!isBrowser()) return;
   localStorage.setItem(STORAGE_KEYS.BALANCE, MOCK_USDC_BALANCE.toString());

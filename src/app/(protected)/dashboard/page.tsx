@@ -9,6 +9,7 @@
 import { useWallet } from "@lazorkit/wallet";
 import { BalanceCard } from "@/components/dashboard/BalanceCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { UsdcFaucet } from "@/components/dashboard/UsdcFaucet";
 import { useRealBalance } from "@/hooks/useRealBalance";
 import { MOCK_MODE, getMockTransactions, getMockSubscription } from "@/lib/mock-mode";
 import { formatUsdc } from "@/lib/utils";
@@ -96,7 +97,15 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="mb-8">
         <h2 className="text-sm font-medium text-slate-500 mb-4">Quick Actions</h2>
-        <QuickActions onRefresh={refresh} />
+        <div className="flex flex-wrap items-center gap-3">
+          <QuickActions onRefresh={refresh} />
+        </div>
+      </div>
+
+      {/* USDC Faucet - Get Test Tokens */}
+      <div className="mb-8">
+        <h2 className="text-sm font-medium text-slate-500 mb-4">Need Test Tokens?</h2>
+        <UsdcFaucet onSuccess={refresh} />
       </div>
 
       {/* Active Subscription */}
