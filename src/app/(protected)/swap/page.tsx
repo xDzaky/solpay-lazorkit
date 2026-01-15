@@ -44,12 +44,34 @@ import confetti from "canvas-confetti";
 
 type SwapDirection = "sol-to-usdc" | "usdc-to-sol";
 
+// localStorage keys for simulated swap balances
+const SWAP_STORAGE_KEYS = {
+  SOL_ADJUSTMENT: 'solpay_swap_sol_adjustment',
+  USDC_ADJUSTMENT: 'solpay_swap_usdc_adjustment',
+};
+
+// Helper functions for swap simulation
+function getSwapAdjustment(key: string): number {
+  if (typeof window === 'undefined') return 0;
+  const stored = localStorage.getItem(key);
+  return stored ? parseFloat(stored) : 0;
+}
+
+function setSwapAdjustment(key: string, value: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(key, value.toString());
+}
+
 export default function SwapPage() {
   const { smartWalletPubkey, isConnected } = useWallet();
   const [mounted, setMounted] = useState(false);
   
   // Use real balance hook (reads from blockchain)
   const { solBalance: realSolBalance, usdcBalance: realUsdcBalance, refresh } = useRealBalance();
+  
+  // Simulated swap adjustments (persisted in localStorage)
+  const [solAdjustment, setSolAdjustment] = useState(0);
+  const [usdcAdjustment, setUsdcAdjustment] = useState(0);
   
   // Price state
   const [priceData, setPriceData] = useState<PriceData | null>(null);
@@ -61,18 +83,21 @@ export default function SwapPage() {
   const [inputAmount, setInputAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5); // 0.5%
   
-  // Use real balances from hook
-  const solBalance = realSolBalance ?? 0;
-  const usdcBalance = realUsdcBalance ?? 0;
+  // Calculate effective balances (real + simulated adjustment)
+  const solBalance = Math.max(0, (realSolBalance ?? 0) + solAdjustment);
+  const usdcBalance = Math.max(0, (realUsdcBalance ?? 0) + usdcAdjustment);
   
   // Transaction state
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapSuccess, setSwapSuccess] = useState(false);
   const [swapError, setSwapError] = useState<string | null>(null);
 
-  // Initialize
+  // Initialize and load swap adjustments from localStorage
   useEffect(() => {
     setMounted(true);
+    // Load simulated swap adjustments
+    setSolAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT));
+    setUsdcAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT));
   }, []);
 
   // Fetch price data
@@ -168,6 +193,25 @@ export default function SwapPage() {
           toAddress: "SwapPool",
           description: `Swap ${amount.toFixed(4)} ${inputToken} → ${swapOutput.outputAmount.toFixed(4)} ${outputToken}`,
         });
+      } else {
+        // Non-mock mode: Update simulated swap adjustments
+        if (direction === "sol-to-usdc") {
+          // Deduct SOL, add USDC (simulated)
+          const newSolAdj = solAdjustment - amount;
+          const newUsdcAdj = usdcAdjustment + swapOutput.outputAmount;
+          setSolAdjustment(newSolAdj);
+          setUsdcAdjustment(newUsdcAdj);
+          setSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT, newSolAdj);
+          setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, newUsdcAdj);
+        } else {
+          // Deduct USDC, add SOL (simulated)
+          const newUsdcAdj = usdcAdjustment - amount;
+          const newSolAdj = solAdjustment + swapOutput.outputAmount;
+          setSolAdjustment(newSolAdj);
+          setUsdcAdjustment(newUsdcAdj);
+          setSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT, newSolAdj);
+          setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, newUsdcAdj);
+        }
       }
 
       setSwapSuccess(true);
@@ -436,8 +480,35 @@ export default function SwapPage() {
         </div>
       </div>
 
+      {/* Simulation Badge */}
+      {(solAdjustment !== 0 || usdcAdjustment !== 0) && (
+        <div className="mt-4 bg-amber-50 rounded-xl p-4 border border-amber-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-600 text-sm font-medium">
+                🧪 Simulated Balance Active
+              </span>
+              <span className="text-xs text-amber-500">
+                (SOL: {solAdjustment >= 0 ? '+' : ''}{solAdjustment.toFixed(4)}, USDC: {usdcAdjustment >= 0 ? '+' : ''}{usdcAdjustment.toFixed(2)})
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSolAdjustment(0);
+                setUsdcAdjustment(0);
+                setSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT, 0);
+                setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, 0);
+              }}
+              className="text-xs text-amber-700 hover:text-amber-900 underline"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Info Box */}
-      <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
+      <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-100">
         <div className="flex gap-3">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
@@ -446,7 +517,7 @@ export default function SwapPage() {
               <li>• Real-time price from CoinGecko API</li>
               <li>• 0.3% swap fee (standard DEX rate)</li>
               <li>• Slippage protection for your trades</li>
-              <li>• Instant execution on devnet</li>
+              <li>• Simulated swap for devnet demo</li>
             </ul>
           </div>
         </div>
