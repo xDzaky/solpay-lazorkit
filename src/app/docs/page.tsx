@@ -27,6 +27,7 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
+      <div className="pt-16">
       
       {/* Header */}
       <section className="pt-24 pb-12 bg-gradient-to-b from-indigo-50 to-slate-50">
@@ -378,6 +379,7 @@ const fetchBalances = async (walletPubkey: PublicKey) => {
       </div>
 
       <Footer />
+      </div>
     </div>
   );
 }

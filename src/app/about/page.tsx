@@ -91,7 +91,7 @@ export default function AboutPage() {
       <Navbar />
       
       {/* Hero */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
+      <section className="relative pt-40 pb-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-indigo-100/30 rounded-full blur-3xl" />
         
