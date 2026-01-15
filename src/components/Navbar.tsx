@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useWallet } from "@lazorkit/wallet";
 import { Wallet, Copy, ExternalLink, LogOut, Check } from "lucide-react";
@@ -15,6 +15,7 @@ import { getExplorerUrl } from "@/lib/constants";
  * - Wallet connection status
  * - Address display with copy functionality
  * - Disconnect button
+ * - Auto-hide on scroll down, show on scroll up
  * 
  * Shows different UI based on wallet connection state.
  * 
@@ -26,6 +27,28 @@ import { getExplorerUrl } from "@/lib/constants";
 export function Navbar() {
     const { smartWalletPubkey, isConnected, disconnect } = useWallet();
     const [copied, setCopied] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const controlNavbar = () => {
+            const currentScrollY = window.scrollY;
+            
+            // Show navbar if scrolling up or at top
+            if (currentScrollY < lastScrollY || currentScrollY < 10) {
+                setIsVisible(true);
+            } 
+            // Hide navbar if scrolling down and past threshold
+            else if (currentScrollY > lastScrollY && currentScrollY > 80) {
+                setIsVisible(false);
+            }
+            
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', controlNavbar);
+        return () => window.removeEventListener('scroll', controlNavbar);
+    }, [lastScrollY]);
 
     const handleCopy = async () => {
         if (!smartWalletPubkey) return;
@@ -51,7 +74,9 @@ export function Navbar() {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-md">
+        <nav className={`fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-md transition-transform duration-300 ${
+            isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}>
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link href="/" className="flex items-center gap-3">
