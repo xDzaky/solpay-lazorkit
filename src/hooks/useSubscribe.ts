@@ -128,7 +128,7 @@ export function useSubscribe() {
             id: `sub_mock_${Date.now()}`,
             planId,
             planName,
-            priceUsdc: requiredAmount,
+            priceUsdc: priceUSDC * 1_000_000,
             status: "ACTIVE",
             startDate: now,
             endDate,
