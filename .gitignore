@@ -4,6 +4,9 @@ node_modules/
 .pnp.js
 .yarn/install-state.gz
 
+# Competitor Project (for reference only)
+solana-subscriptions-starter-main/
+
 # Testing
 coverage/
 .nyc_output/
