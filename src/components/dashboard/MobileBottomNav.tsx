@@ -14,14 +14,15 @@ import {
   QrCode, 
   History, 
   Users,
-  MoreHorizontal 
+  MoreHorizontal,
+  ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/send", label: "Send", icon: Send },
-  { href: "/split", label: "Split", icon: Users },
+  { href: "/swap", label: "Swap", icon: ArrowLeftRight },
   { href: "/transactions", label: "History", icon: History },
   { href: "/settings", label: "More", icon: MoreHorizontal },
 ];

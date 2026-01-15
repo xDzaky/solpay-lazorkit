@@ -7,11 +7,12 @@
 "use client";
 
 import Link from "next/link";
-import { Send, QrCode, RefreshCw, CreditCard, Users } from "lucide-react";
+import { Send, QrCode, RefreshCw, CreditCard, Users, ArrowLeftRight } from "lucide-react";
 
 const actions = [
   { href: "/send", label: "Send", icon: Send, color: "bg-indigo-500" },
   { href: "/request", label: "Request", icon: QrCode, color: "bg-emerald-500" },
+  { href: "/swap", label: "Swap", icon: ArrowLeftRight, color: "bg-cyan-500" },
   { href: "/split", label: "Split Bill", icon: Users, color: "bg-orange-500" },
   { href: "/subscribe", label: "Subscribe", icon: CreditCard, color: "bg-purple-500" },
 ];

@@ -19,7 +19,8 @@ import {
   LogOut,
   Wallet,
   Users,
-  Store
+  Store,
+  ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/send", label: "Send", icon: Send },
   { href: "/request", label: "Request", icon: QrCode },
+  { href: "/swap", label: "Swap", icon: ArrowLeftRight },
   { href: "/split", label: "Split Bill", icon: Users },
   { href: "/transactions", label: "History", icon: History },
   { href: "/subscribe", label: "Subscribe", icon: CreditCard },
