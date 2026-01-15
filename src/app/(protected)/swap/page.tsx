@@ -38,6 +38,7 @@ import {
   addMockTransaction,
   MOCK_MODE 
 } from "@/lib/mock-mode";
+import { useRealBalance } from "@/hooks/useRealBalance";
 import { formatUsdc } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
@@ -46,6 +47,9 @@ type SwapDirection = "sol-to-usdc" | "usdc-to-sol";
 export default function SwapPage() {
   const { smartWalletPubkey, isConnected } = useWallet();
   const [mounted, setMounted] = useState(false);
+  
+  // Use real balance hook (reads from blockchain)
+  const { solBalance: realSolBalance, usdcBalance: realUsdcBalance, refresh } = useRealBalance();
   
   // Price state
   const [priceData, setPriceData] = useState<PriceData | null>(null);
@@ -57,9 +61,9 @@ export default function SwapPage() {
   const [inputAmount, setInputAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5); // 0.5%
   
-  // Balance state
-  const [solBalance, setSolBalance] = useState(0);
-  const [usdcBalance, setUsdcBalance] = useState(0);
+  // Use real balances from hook
+  const solBalance = realSolBalance ?? 0;
+  const usdcBalance = realUsdcBalance ?? 0;
   
   // Transaction state
   const [isSwapping, setIsSwapping] = useState(false);
@@ -91,20 +95,6 @@ export default function SwapPage() {
     const interval = setInterval(fetchPrice, 30000);
     return () => clearInterval(interval);
   }, [fetchPrice]);
-
-  // Update balances
-  useEffect(() => {
-    if (!MOCK_MODE) return;
-    
-    const updateBalances = () => {
-      setSolBalance(getMockSolBalance() / 1_000_000_000); // Convert lamports to SOL
-      setUsdcBalance(getMockBalance() / 1_000_000); // Convert to USDC
-    };
-    
-    updateBalances();
-    const interval = setInterval(updateBalances, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Calculate swap output
   const swapOutput = inputAmount && priceData
@@ -182,6 +172,9 @@ export default function SwapPage() {
 
       setSwapSuccess(true);
       setInputAmount("");
+      
+      // Refresh balance after swap
+      refresh();
       
       // Celebration!
       confetti({
