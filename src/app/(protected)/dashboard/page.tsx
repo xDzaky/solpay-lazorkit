@@ -27,10 +27,19 @@ import Link from "next/link";
 
 export default function DashboardPage() {
   const { smartWalletPubkey } = useWallet();
-  const { solBalance, usdcBalance, isLoading, isMock, refresh } = useRealBalance();
+  const { solBalance, usdcBalance, isLoading, isMock, refresh, hasSwapSimulation, solAdjustment, usdcAdjustment } = useRealBalance();
   const [recentTx, setRecentTx] = useState<any[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+
+  // Reset swap simulation
+  const resetSwapSimulation = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('solpay_swap_sol_adjustment');
+      localStorage.removeItem('solpay_swap_usdc_adjustment');
+      refresh();
+    }
+  };
 
   // Load mock data
   useEffect(() => {
@@ -77,6 +86,31 @@ export default function DashboardPage() {
           </button>
         )}
       </div>
+
+      {/* Swap Simulation Badge */}
+      {hasSwapSimulation && (
+        <div className="mb-4 bg-amber-50 rounded-xl p-4 border border-amber-200">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-600 text-sm font-medium">
+                🧪 Swap Simulation Active
+              </span>
+              <span className="text-xs text-amber-500">
+                (SOL: {solAdjustment >= 0 ? '+' : ''}{solAdjustment.toFixed(4)}, USDC: {usdcAdjustment >= 0 ? '+' : ''}{usdcAdjustment.toFixed(2)})
+              </span>
+            </div>
+            <button
+              onClick={resetSwapSimulation}
+              className="text-xs text-amber-700 hover:text-amber-900 underline"
+            >
+              Reset to Real Balance
+            </button>
+          </div>
+          <p className="text-xs text-amber-600 mt-2">
+            Balance includes simulated swap. Use this USDC to test subscription!
+          </p>
+        </div>
+      )}
 
       {/* Balance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

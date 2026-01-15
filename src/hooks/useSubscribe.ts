@@ -16,6 +16,24 @@ import {
 } from "@/lib/mock-mode";
 import type { TransferResult } from "@/types";
 
+// localStorage keys for simulated swap balances
+const SWAP_STORAGE_KEYS = {
+  SOL_ADJUSTMENT: 'solpay_swap_sol_adjustment',
+  USDC_ADJUSTMENT: 'solpay_swap_usdc_adjustment',
+};
+
+// Helper functions for swap simulation
+function getSwapAdjustment(key: string): number {
+  if (typeof window === 'undefined') return 0;
+  const stored = localStorage.getItem(key);
+  return stored ? parseFloat(stored) : 0;
+}
+
+function setSwapAdjustment(key: string, value: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(key, value.toString());
+}
+
 /**
  * Generate a mock transaction signature
  */
@@ -61,12 +79,13 @@ export function useSubscribe() {
         if (MOCK_MODE) {
           logMockActivity("Starting mock subscription", { planId, planName, priceUSDC });
           
-          // Check if user has enough balance
-          const currentBalance = getMockBalance();
-          const requiredAmount = priceUSDC * 1_000_000; // Convert to smallest unit
+          // Check if user has enough balance (including swap adjustment)
+          const mockBalance = getMockBalance() / 1_000_000;
+          const swapUsdcAdj = getSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT);
+          const totalBalance = mockBalance + swapUsdcAdj;
           
-          if (currentBalance < requiredAmount) {
-            const message = `Insufficient USDC balance. Need $${priceUSDC}, have $${(currentBalance / 1_000_000).toFixed(2)}`;
+          if (totalBalance < priceUSDC) {
+            const message = `Insufficient USDC balance. Need $${priceUSDC}, have $${totalBalance.toFixed(2)}`;
             setError(message);
             return { success: false, error: message };
           }
@@ -77,14 +96,23 @@ export function useSubscribe() {
           // Generate mock signature
           const signature = generateMockSignature();
           
-          // Deduct from mock balance
-          deductMockBalance(requiredAmount);
+          // Deduct from appropriate balance
+          if (swapUsdcAdj >= priceUSDC) {
+            // Deduct from swap adjustment first
+            const newAdj = swapUsdcAdj - priceUSDC;
+            setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, newAdj);
+          } else {
+            // Use swap adjustment + mock balance
+            setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, 0);
+            const remainingNeeded = priceUSDC - swapUsdcAdj;
+            deductMockBalance(remainingNeeded * 1_000_000);
+          }
           
           // Record mock transaction
           addMockTransaction({
             from: smartWalletPubkey.toString(),
             to: "EyJfxrAxws2VZaPnU8ifQ6NoH7B7XBVDbqrfX191cqYU", // Vault
-            amount: requiredAmount,
+            amount: priceUSDC * 1_000_000,
             token: "USDC",
             planId,
             planName,
@@ -127,6 +155,58 @@ export function useSubscribe() {
           } catch (dbError) {
             // Database recording is optional in mock mode
             console.warn("Mock: Database recording failed, continuing anyway", dbError);
+          }
+          
+          return { success: true, signature };
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // SIMULATED SWAP MODE: Use swap simulation for demo (non-MOCK_MODE)
+        // ─────────────────────────────────────────────────────────────────────
+        const swapUsdcAdj = getSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT);
+        
+        if (swapUsdcAdj >= priceUSDC) {
+          // User has enough simulated USDC from swap - use simulation mode
+          logMockActivity("Using simulated swap balance for subscription", { planId, planName, priceUSDC, swapUsdcAdj });
+          
+          await simulateDelay(2000);
+          
+          const signature = generateMockSignature();
+          
+          // Deduct from swap adjustment
+          const newAdj = swapUsdcAdj - priceUSDC;
+          setSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT, newAdj);
+          
+          // Set subscription state
+          const now = new Date();
+          const endDate = new Date(now);
+          endDate.setMonth(endDate.getMonth() + 1);
+          
+          setMockSubscription({
+            id: `sub_swap_${Date.now()}`,
+            planId,
+            planName,
+            priceUsdc: priceUSDC * 1_000_000,
+            status: "ACTIVE",
+            startDate: now,
+            endDate,
+            transactionSignature: signature,
+          });
+          
+          // Record in database
+          try {
+            await fetch("/api/subscriptions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                walletAddress: smartWalletPubkey.toString(),
+                planId,
+                transactionSignature: signature,
+                amountPaid: priceUSDC,
+              }),
+            });
+          } catch (dbError) {
+            console.warn("Database recording failed, continuing anyway", dbError);
           }
           
           return { success: true, signature };

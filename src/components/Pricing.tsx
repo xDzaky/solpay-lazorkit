@@ -5,6 +5,7 @@ import { useWallet } from "@lazorkit/wallet";
 import { Check, Sparkles, Loader2, Crown, PartyPopper } from "lucide-react";
 import { useSubscribe } from "@/hooks/useSubscribe";
 import { MOCK_MODE, getMockSubscription, getMockBalance } from "@/lib/mock-mode";
+import { useRealBalance } from "@/hooks/useRealBalance";
 import { formatUsdc } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
@@ -63,19 +64,18 @@ const plans = [
 export function Pricing() {
     const { isConnected } = useWallet();
     const { subscribe, isProcessing, error } = useSubscribe();
+    const { usdcBalance } = useRealBalance(); // Now includes swap simulation
     const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [currentSubscription, setCurrentSubscription] = useState<string | null>(null);
-    const [balance, setBalance] = useState(0);
 
-    // Sync with mock data
+    // Sync with mock subscription data
     useEffect(() => {
         if (!MOCK_MODE) return;
 
         const updateData = () => {
             const sub = getMockSubscription();
             setCurrentSubscription(sub?.planId || null);
-            setBalance(getMockBalance());
         };
 
         updateData();
@@ -123,9 +123,9 @@ export function Pricing() {
             return;
         }
 
-        // Check balance
-        if (MOCK_MODE && balance < price * 1_000_000) {
-            alert(`Insufficient balance! You need $${price} but only have $${formatUsdc(balance)}`);
+        // Check balance (usdcBalance is already in dollars, not smallest unit)
+        if (usdcBalance < price) {
+            alert(`Insufficient balance! You need $${price} but only have $${usdcBalance.toFixed(2)}. Swap some SOL to USDC first!`);
             return;
         }
 

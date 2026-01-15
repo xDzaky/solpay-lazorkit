@@ -2,6 +2,7 @@
 // USE REAL BALANCE HOOK
 // =============================================================================
 // Fetches real SOL and USDC balance from blockchain
+// Includes simulated swap adjustments for demo purposes
 // Falls back to mock balance in mock mode
 // =============================================================================
 
@@ -17,19 +18,39 @@ const USDC_MINT = TOKENS.USDC.mint;
 import { MOCK_MODE, getMockBalance, getMockSolBalance } from "@/lib/mock-mode";
 import { useEffect, useState } from "react";
 
+// localStorage keys for simulated swap balances (shared with swap page)
+const SWAP_STORAGE_KEYS = {
+  SOL_ADJUSTMENT: 'solpay_swap_sol_adjustment',
+  USDC_ADJUSTMENT: 'solpay_swap_usdc_adjustment',
+};
+
+// Helper to get swap adjustment from localStorage
+function getSwapAdjustment(key: string): number {
+  if (typeof window === 'undefined') return 0;
+  const stored = localStorage.getItem(key);
+  return stored ? parseFloat(stored) : 0;
+}
+
 export function useRealBalance() {
   const { smartWalletPubkey, isConnected } = useWallet();
   const queryClient = useQueryClient();
   const [mockUsdcBalance, setMockUsdcBalance] = useState(0);
   const [mockSolBalance, setMockSolBalance] = useState(0);
   
-  // Poll mock balances
+  // Simulated swap adjustments
+  const [solAdjustment, setSolAdjustment] = useState(0);
+  const [usdcAdjustment, setUsdcAdjustment] = useState(0);
+  
+  // Poll mock balances and swap adjustments
   useEffect(() => {
-    if (!MOCK_MODE) return;
-    
     const update = () => {
-      setMockUsdcBalance(getMockBalance() / 1_000_000);
-      setMockSolBalance(getMockSolBalance() / 1_000_000_000);
+      if (MOCK_MODE) {
+        setMockUsdcBalance(getMockBalance() / 1_000_000);
+        setMockSolBalance(getMockSolBalance() / 1_000_000_000);
+      }
+      // Always update swap adjustments
+      setSolAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT));
+      setUsdcAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT));
     };
     update();
     
@@ -91,11 +112,26 @@ export function useRealBalance() {
   const refresh = () => {
     refetchSol();
     refetchUsdc();
+    // Also refresh swap adjustments
+    setSolAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.SOL_ADJUSTMENT));
+    setUsdcAdjustment(getSwapAdjustment(SWAP_STORAGE_KEYS.USDC_ADJUSTMENT));
   };
 
+  // Calculate final balances (real/mock + swap adjustments)
+  const baseSolBalance = MOCK_MODE ? mockSolBalance : (solBalance ?? 0);
+  const baseUsdcBalance = MOCK_MODE ? mockUsdcBalance : (usdcBalance ?? 0);
+
   return {
-    solBalance: MOCK_MODE ? mockSolBalance : (solBalance ?? 0),
-    usdcBalance: MOCK_MODE ? mockUsdcBalance : (usdcBalance ?? 0),
+    // Raw blockchain/mock balance
+    rawSolBalance: baseSolBalance,
+    rawUsdcBalance: baseUsdcBalance,
+    // Effective balance including swap simulation
+    solBalance: Math.max(0, baseSolBalance + solAdjustment),
+    usdcBalance: Math.max(0, baseUsdcBalance + usdcAdjustment),
+    // Swap adjustments (for display purposes)
+    solAdjustment,
+    usdcAdjustment,
+    hasSwapSimulation: solAdjustment !== 0 || usdcAdjustment !== 0,
     isLoading: solLoading || usdcLoading,
     isMock: MOCK_MODE,
     refresh,
