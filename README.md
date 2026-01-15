@@ -4,6 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://solpay-lazorkit.vercel.app)
 [![Solana](https://img.shields.io/badge/Solana-Devnet-purple)](https://explorer.solana.com/?cluster=devnet)
+[![Twitter](https://img.shields.io/badge/Twitter-Demo-blue)](https://x.com/Dzaky_Az/status/2011839811372662972)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
@@ -59,9 +60,16 @@
 
 ## 📺 Demo Video
 
-> 🎥 **Coming Soon** - Demo video showcasing the full passkey authentication flow and gasless transactions.
->
-> In the meantime, try the [live demo](https://solpay-lazorkit.vercel.app) yourself!
+🎥 **[Watch Demo on Twitter/X](https://x.com/Dzaky_Az/status/2011839811372662972)**
+
+See SolPay in action:
+- ✨ Passkey authentication (Face ID/Touch ID)
+- 💸 Gasless USDC transactions
+- 🔄 SOL ↔ USDC swap
+- 📊 Merchant analytics
+- 🎫 Subscription management
+
+Or try the [live demo](https://solpay-lazorkit.vercel.app) yourself!
 
 ---
 
@@ -549,6 +557,7 @@ This project includes **4 comprehensive tutorials**:
 
 ## 📖 Additional Resources
 
+- 📺 [Demo Video on Twitter/X](https://x.com/Dzaky_Az/status/2011839811372662972)
 - [Technical Specification](./TECH_SPEC.md) - 1400+ lines of detailed documentation
 - [Lazorkit Documentation](https://docs.lazorkit.com)
 - [Lazorkit GitHub](https://github.com/lazor-kit/lazor-kit)
