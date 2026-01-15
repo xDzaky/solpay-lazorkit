@@ -225,11 +225,13 @@ solpay-lazorkit/
 │   │   ├── (protected)/   # Authenticated routes
 │   │   │   ├── dashboard/     # User dashboard
 │   │   │   ├── send/          # Send payments
-│   │   │   ├── request/       # Request payments (QR)
+│   │   │   ├── request/       # Request payments (Solana Pay QR)
+│   │   │   ├── swap/          # SOL ↔ USDC exchange
 │   │   │   ├── split/         # Split bill feature
 │   │   │   ├── transactions/  # Transaction history
 │   │   │   │   └── [id]/      # Transaction detail
 │   │   │   ├── subscribe/     # Subscription plans
+│   │   │   ├── merchant/      # Merchant analytics portal
 │   │   │   └── settings/      # User settings
 │   │   ├── about/         # About page
 │   │   ├── docs/          # Documentation page
@@ -239,24 +241,26 @@ solpay-lazorkit/
 │   │   │   ├── subscriptions/  # Subscription management
 │   │   │   └── transactions/   # Transaction history
 │   │   ├── layout.tsx     # Root layout with providers
-│   │   └── page.tsx       # Landing page
+│   │   └── page.tsx       # Landing page (animated)
 │   ├── components/
 │   │   ├── ui/            # Reusable UI components
 │   │   ├── auth/          # ProtectedRoute
-│   │   ├── dashboard/     # Sidebar, BalanceCard, QuickActions
+│   │   ├── dashboard/     # Sidebar, BalanceCard, QuickActions, UsdcFaucet
 │   │   ├── wallet/        # ConnectButton
 │   │   ├── payment/       # PaymentQRCode
 │   │   ├── subscription/  # PlanCard, PlanGrid
 │   │   └── transaction/   # TransactionList
 │   ├── hooks/
 │   │   ├── useBalance.ts      # Balance fetching
-│   │   ├── useRealBalance.ts  # Real blockchain balance
+│   │   ├── useRealBalance.ts  # Real blockchain + swap simulation
 │   │   ├── useSendTransaction.ts  # Transaction sending
 │   │   ├── useSubscribe.ts    # Subscription management
 │   │   └── useTransactions.ts # Transaction history
 │   ├── lib/
 │   │   ├── constants.ts   # Config, token addresses
 │   │   ├── solana.ts      # Blockchain utilities
+│   │   ├── spl-memo.ts    # SPL Memo protocol
+│   │   ├── price.ts       # CoinGecko price service
 │   │   ├── prisma.ts      # Database client
 │   │   ├── mock-mode.ts   # Mock data for testing
 │   │   └── utils.ts       # Helper functions
@@ -285,11 +289,13 @@ solpay-lazorkit/
 | 🔐 **Passkey Login** | Biometric authentication (FaceID/TouchID) | `/` |
 | 📊 **Dashboard** | Balance overview with quick actions | `/dashboard` |
 | 💸 **Send Payment** | Send SOL or USDC to any address | `/send` |
-| 📱 **Request Payment** | Generate QR codes for receiving | `/request` |
+| 📱 **Request Payment** | Generate Solana Pay QR codes | `/request` |
+| 🔄 **Swap** | Exchange SOL ↔ USDC with real-time pricing | `/swap` |
 | 👥 **Split Bill** | Split bills between multiple people | `/split` |
 | 📜 **Transaction History** | View all past transactions | `/transactions` |
 | 🔍 **Transaction Detail** | Detailed view with explorer link | `/transactions/[id]` |
 | 💳 **Subscriptions** | Choose and manage subscription plans | `/subscribe` |
+| 🏪 **Merchant Portal** | Revenue analytics and charts | `/merchant` |
 | ⚙️ **Settings** | Manage account and preferences | `/settings` |
 | ℹ️ **About** | Project overview and features | `/about` |
 | 📖 **Documentation** | Developer integration guide | `/docs` |
@@ -314,13 +320,24 @@ SolPay goes **beyond basic subscriptions** to provide a complete payment ecosyst
 | Feature | SolPay | Others |
 |---------|--------|--------|
 | 💸 **Send Payments** | ✅ Send USDC to any wallet | ❌ |
-| 📱 **QR Payment Requests** | ✅ Generate scannable QR codes | ❌ |
+| 📱 **Solana Pay QR Codes** | ✅ Full protocol support with download | ❌ |
+| 🔄 **SOL ↔ USDC Swap** | ✅ Real-time CoinGecko pricing | ❌ |
 | 👥 **Split Bills** | ✅ Equal split among participants | ❌ |
-| 🏪 **Merchant Portal** | ✅ Revenue analytics dashboard | ❌ |
+| 🏪 **Merchant Portal** | ✅ Revenue analytics with charts | ❌ |
 | 💧 **USDC Faucet** | ✅ Get test tokens instantly | ❌ |
 | 🏷️ **SPL Memo Protocol** | ✅ Full transaction transparency | ❌ |
 | 🧪 **Unit Tests** | ✅ 17+ Vitest test cases | ❌ |
 | 🗄️ **Database Persistence** | ✅ Prisma + PostgreSQL | ❌ |
+| 🎨 **Animated Landing** | ✅ Framer Motion effects | ❌ |
+
+### 🔄 Token Swap
+
+Exchange SOL and USDC with real-time market prices:
+- Live price feed from CoinGecko API
+- Slippage tolerance options (0.5%, 1%, 2%)
+- 0.3% swap fee (standard DEX rate)
+- Price impact calculation
+- Confetti celebration on success 🎉
 
 ### 📊 Merchant Dashboard
 
